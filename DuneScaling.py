@@ -177,16 +177,32 @@ def get_dims(dunes):
         dune.position['Sbase'] = (yf-yd)/(xf-xd)
         dune.position['X'] = xc
         dune.position['Y'] = yf
-        dune.position['Velocity'] = np.insert(v, 0, 0)
+        dune.position['Velocity'] = np.insert(v, 0, np.nan)
         dunes[name] = dune
     return dunes
 
 
-# 5. Adjust for perspective
-# 6. Check for scaling laws
+# 5. Plot everything
+def plot_all(dunes):
+    """Plot all combinations of variables"""
+    variables = ['X', 'Y', 'Height', 'Width', 'Slope', 'Sbase', 'Velocity']
+    labels = {'X': 'X, Crest position', 'Y': 'Y, Foot position',
+              'Height': 'Height, Crest-Foot', 'Width': 'Width, Crest-Dwend',
+              'Slope': 'Slope, Dwend to Crest', 'Sbase': 'Slope, Dwend to Foot',
+              'Velocity': 'Velocity, per second'}
+    for var in variables:
+        # Plot var vs. all variables after var
+        
+
 
 def main(fname):
+    # Read data from file
     dunes = read_data(fname)
-    # Do other things with data analysis
+    # Add dimensions and velocities to dune structures
     dunes = get_dims(dunes)
+    # Plot everything possible
+    plot_all(dunes)
     return dunes
+
+
+dunes = main(fname)
