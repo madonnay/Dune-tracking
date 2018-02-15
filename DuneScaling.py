@@ -50,6 +50,9 @@ class Dune:
         self.position = pd.DataFrame(columns=[
                 'Step', 'Crest', 'Foot', 'Dwend'])
 
+    def __repr__(self):
+        return("Dune, Length: {}".format(len(self.position)))
+
     def add_position(self, step, crest, foot, dwend):
         """This function adds a dune position in a step of the video.
         Crest, foot and dwend are (x,y) tuples representing position.
@@ -97,10 +100,11 @@ def add_and_finalize(dunes, name, step, crest, foot, dwend):
 
 
 def clear_group(group, current):
+    """Empty group list and get new name and step"""
     group = []
     group.append(current)
     name = current[1]
-    step = current[0]
+    step = float(current[0])
     return (group, name, step)
 
 
@@ -117,7 +121,7 @@ def read_data(fname):
         for line in islice(datareader, 1, None):
             current = line[:]
             cname = current[1]
-            cstep = current[0]
+            cstep = float(current[0])
             if (name == cname) and (step == cstep):
                 group.append(current)
             else:   # 2. For each set of three lines,
@@ -139,11 +143,50 @@ def read_data(fname):
         return dunes
 
 
+def get_n(ser, n):
+    """Get the nth value of items from array ser and return them in an array"""
+    lst = []
+    for row in ser:
+        lst.append(row[n])
+    arr = np.array(lst)
+    return arr
+
+
 # 4. Get heights, widths, slopes, velocities, etc.
+def get_dims(dunes):
+    """Add dimension information to """
+    for name in dunes.keys():
+        dune = dunes[name]
+        # Make sure dune is sorted by step
+        dune.position.set_index('Step')
+        dune.position.sort_index
+        # Get t and each x and y series
+        t = dune.position['Step']*10   # Units of seconds
+        xf = get_n(dune.position['Foot'], 0)
+        yf = get_n(dune.position['Foot'], 1)
+        xc = get_n(dune.position['Crest'], 0)
+        yc = get_n(dune.position['Crest'], 1)
+        xd = get_n(dune.position['Dwend'], 0)
+        yd = get_n(dune.position['Dwend'], 1)
+        dt = np.diff(t)
+        dx = np.diff(xc)
+        v = abs(dx/dt)
+        dune.position['Height'] = yc-yf
+        dune.position['Width'] = xc-xd
+        dune.position['Slope'] = (yc-yd)/(xc-xd)
+        dune.position['Sbase'] = (yf-yd)/(xf-xd)
+        dune.position['X'] = xc
+        dune.position['Y'] = yf
+        dune.position['Velocity'] = np.insert(v, 0, 0)
+        dunes[name] = dune
+    return dunes
+
+
 # 5. Adjust for perspective
 # 6. Check for scaling laws
 
 def main(fname):
     dunes = read_data(fname)
     # Do other things with data analysis
-
+    dunes = get_dims(dunes)
+    return dunes
