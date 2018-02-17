@@ -1,4 +1,4 @@
-import sys
+from matplotlib import pyplot as plt
 import csv
 import numpy as np
 import pandas as pd
@@ -183,16 +183,51 @@ def get_dims(dunes):
 
 
 # 5. Plot everything
+def makeplot(var_x, var_y, label, dunes):
+    """Make the actual plots from all dunes for var_x and var_y"""
+    # Initialize plot
+    plt.figure()
+    # Iterate through dunes to fill in points
+    for name in dunes.keys():
+        df = dunes[name].position
+        x = df[var_x]
+        y = df[var_y]
+        color = df['Y']/270
+        # Plot the points
+#        plt.plot(x, y, '.-')    # For plotting lines for each dune with points
+        plt.scatter(x, y, c=color, cmap='RdYlGn', vmin=0, vmax=1)
+    # Add labels
+    plt.xlabel(label[var_x])
+    plt.ylabel(label[var_y])
+    plt.title('{} vs. {}'.format(var_x, var_y))
+    plt.show()
+    # Save the plot
+    plt.savefig(var_x+var_y)
+    # Close the plot
+    plt.close()
+
+
 def plot_all(dunes):
     """Plot all combinations of variables"""
     variables = ['X', 'Y', 'Height', 'Width', 'Slope', 'Sbase', 'Velocity']
-    labels = {'X': 'X, Crest position', 'Y': 'Y, Foot position',
-              'Height': 'Height, Crest-Foot', 'Width': 'Width, Crest-Dwend',
-              'Slope': 'Slope, Dwend to Crest', 'Sbase': 'Slope, Dwend to Foot',
-              'Velocity': 'Velocity, per second'}
+    label = {'X': 'X, Crest position', 'Y': 'Y, Foot position',
+             'Height': 'Height, Crest-Foot', 'Width': 'Width, Crest-Dwend',
+             'Slope': 'Slope, Dwend to Crest', 'Sbase': 'Slope, Dwend to Foot',
+             'Velocity': 'Velocity, per second'}
+    i = 0
+    n = 0
     for var in variables:
+        var_x = var
         # Plot var vs. all variables after var
-        
+        ind = range((i+1), 7)
+        if len(ind) == 0:
+            return
+        for index in ind:
+            var_y = variables[index]
+            makeplot(var_x, var_y, label, dunes)
+            n += 1
+        i += 1
+    print('All {} plots have been made.'.format(str(n)))
 
 
 def main(fname):
